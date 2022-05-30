@@ -64,7 +64,7 @@ if (document.getElementById('logoutBtn')) {
     try {
       const res = await axios({
         method: 'GET',
-        url: 'http://localhost:3000/api/v1/users/logout',
+        url: 'https://natours-app123.herokuapp.com/api/v1/users/logout',
       });
 
       if (res.data.status === 'success') {
