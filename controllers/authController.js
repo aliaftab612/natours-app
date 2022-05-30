@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
-const sendEmail = require('./../utils/email');
+const Email = require('./../utils/email');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -22,6 +22,11 @@ exports.signUp = catchAsync(async (req, res, next) => {
   });
 
   const token = generateToken(newUser._id);
+
+  await new Email(
+    newUser,
+    `${req.protocol}://${req.get('host')}/me`
+  ).sendWelcomeEmail();
 
   res.status(200).json({
     status: 'success',
@@ -49,6 +54,13 @@ exports.login = catchAsync(async (req, res, next) => {
 
   const token = generateToken(user._id);
 
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    expires: new Date(Number(new Date()) + 3153600000000),
+  });
+
   res.status(200).json({
     status: 'success',
     token,
@@ -62,6 +74,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -86,7 +100,34 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   req.user = user;
+  res.locals.user = user;
 
+  next();
+});
+
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      const decodedToken = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      const user = await User.findById(decodedToken.id);
+
+      if (!user) return next();
+
+      if (user.changedPasswordAfter(decodedToken.iat)) {
+        return next();
+      }
+
+      res.locals.user = user;
+
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
   next();
 });
 
@@ -116,14 +157,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
   const resetUrl = `${req.protocol}://${req.hostname}:3000/api/v1/users/resetPassword/${resetToken}`;
 
-  const message = 'Click Here to Reset Password - ' + resetUrl;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Reset Link Natours Password (Expires in 10 Mins)',
-      message,
-    });
+    await new Email(user, resetUrl).sendResetPasswordEmail();
 
     res.status(200).json({
       status: 'success',
@@ -193,9 +228,28 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   const token = generateToken(user._id);
 
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    expires: new Date(Number(new Date()) + 3153600000000),
+  });
+
   res.status(200).json({
     status: 'success',
     token,
     message: 'Password Successfully changed',
+  });
+});
+
+exports.logout = catchAsync(async (req, res, next) => {
+  res.cookie('jwt', 'logedOut', {
+    expiresIn: new Date(Date.now),
+    httpOnly: true,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: null,
   });
 });
