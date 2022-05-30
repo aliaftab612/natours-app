@@ -2,24 +2,34 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Review = require('./../models/reviewModel');
 
-exports.createReview = catchAsync(async (req, res, next) => {
-  if (!req.body.user) req.body.user = req.user._id;
+exports.createReview = async (req, res, next) => {
+  if (!req.body.user) req.body.user = req.user.id;
   if (!req.body.tour) req.body.tour = req.params.tourId;
 
-  const newReview = await Review.create({
-    review: req.body.review,
-    rating: req.body.rating,
-    user: req.body.user,
-    tour: req.body.tour,
-  });
+  try {
+    const newReview = await Review.create({
+      review: req.body.review,
+      rating: req.body.rating,
+      user: req.body.user,
+      tour: req.body.tour,
+    });
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      review: newReview,
-    },
-  });
-});
+    res.status(201).json({
+      status: 'success',
+      data: {
+        review: newReview,
+      },
+    });
+  } catch (err) {
+    if (err) {
+      if (err.name === 'MongoServerError' && err.code === 11000) {
+        return next(new AppError('Only one review is allowed', 400));
+      }
+
+      return next(err);
+    }
+  }
+};
 
 exports.getReview = catchAsync(async (req, res, next) => {
   const reviewId = req.params.id;
@@ -41,7 +51,7 @@ exports.updateReview = catchAsync(async (req, res, next) => {
 
   if (!review) return next(new AppError('Review Does not exists', 404));
 
-  if (req.user.role === 'user' && req.user._id != review.user.id)
+  if (req.user.role === 'user' && req.user.id !== review.user.id)
     return next(new AppError('You cannot update this review', 403));
 
   const upatedReview = await Review.findByIdAndUpdate(
@@ -70,7 +80,7 @@ exports.deleteReview = catchAsync(async (req, res, next) => {
 
   if (!review) return next(new AppError('Review Does not exists', 404));
 
-  if (req.user.role === 'user' && req.user._id !== review.user)
+  if (req.user.role === 'user' && req.user.id !== review.user.id)
     return next(new AppError('You cannot delete this review', 403));
 
   await Review.findByIdAndDelete(reviewId);
