@@ -1,6 +1,39 @@
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const multer = require('multer');
+const sharp = require('sharp');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('File uploaded is not Image Type!', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadUserImage = upload.single('image');
+
+exports.resizeUserImage = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/users/${req.file.filename}`);
+
+  next();
+});
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -49,6 +82,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     return next(new AppError('Passwords cannot be updated Here!', 400));
 
   const filteredObj = filterObj(req.body, 'name', 'email');
+
+  if (req.file) filteredObj.image = req.file.filename;
 
   const updatedUser = await User.findByIdAndUpdate(req.user._id, filteredObj, {
     new: true,
