@@ -45,17 +45,33 @@ module.exports = (err, req, res, next) => {
     else if (err.name === 'TokenExpiredError')
       err = new AppError('Token Expired Please Re-Login!', 401);
 
+    if (req.originalUrl.startsWith('/api')) {
+      if (err.isOperational) {
+        return res.status(err.statusCode).json({
+          status: err.status,
+          message: err.message,
+        });
+      } else {
+        console.error('ERROR', err);
+
+        return res.status(500).json({
+          status: 'error',
+          message: 'Something went very Wrong!',
+        });
+      }
+    }
+
     if (err.isOperational) {
-      res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message,
+      return res.status(err.statusCode).render('error', {
+        title: 'Something went wrong!',
+        msg: err.message,
       });
     } else {
       console.error('ERROR', err);
 
-      res.status(500).json({
-        status: 'error',
-        message: 'Something went very Wrong!',
+      return res.status(500).render('error', {
+        title: 'Something went wrong!',
+        msg: 'Please try Again!',
       });
     }
   }
