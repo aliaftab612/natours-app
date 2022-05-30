@@ -43,7 +43,6 @@ reviewSchema.statics.calcAvgRating = async function (tourId) {
       },
     },
   ]);
-  console.log(stats);
   await Tour.findByIdAndUpdate(tourId, {
     ratingsAverage: stats.length > 0 ? stats[0].ratingsAvg : 4.5,
     ratingsQuantity: stats.length > 0 ? stats[0].nRatings : 0,
@@ -51,11 +50,6 @@ reviewSchema.statics.calcAvgRating = async function (tourId) {
 };
 
 reviewSchema.index({ user: 1, tour: 1 }, { unique: true });
-
-reviewSchema.pre(/^findOneAndUpdate/, async function (next) {
-  this.r = await this.find();
-  next();
-});
 
 reviewSchema.pre(/^find/, function (next) {
   this.select('-__v');
@@ -70,8 +64,8 @@ reviewSchema.pre(/^find/, function (next) {
   next();
 });
 
-reviewSchema.post(/^findOneAndUpdate/, async function () {
-  await this.r.constructor.calcAvgRating(this.r.tour);
+reviewSchema.post(/^findOneAnd/, function (doc) {
+  doc.constructor.calcAvgRating(doc.tour);
 });
 
 reviewSchema.post('save', function () {
