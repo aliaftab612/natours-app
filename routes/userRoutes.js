@@ -7,12 +7,18 @@ const router = express.Router();
 router.post('/signup', authController.signUp);
 router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
+router.get('/logout', authController.logout);
 router.patch('/resetPassword/:resetToken', authController.resetPassword);
 
 router.use(authController.protect);
 
 router.patch('/updatePassword', authController.updatePassword);
-router.patch('/updateMe', userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserImage,
+  userController.resizeUserImage,
+  userController.updateMe
+);
 router.delete('/deleteMe', userController.deleteMe);
 router.get('/me', userController.getMe);
 
