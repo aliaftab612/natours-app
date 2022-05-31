@@ -1,4 +1,4 @@
-const alert = document.querySelector(body).dataset.alert;
+const alert = document.querySelector('body').dataset.alert;
 
 if (alert) showAlert('success', alert, 15);
 
