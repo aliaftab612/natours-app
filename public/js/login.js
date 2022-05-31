@@ -2,7 +2,7 @@ const login = async (email, password) => {
   try {
     const res = await axios({
       method: 'POST',
-      url: 'https://natours-app123.herokuapp.com/api/v1/users/login',
+      url: '/api/v1/users/login',
       data: {
         email: email,
         password: password,
@@ -24,7 +24,7 @@ const SaveAccountDetails = async (data) => {
   try {
     const res = await axios({
       method: 'PATCH',
-      url: 'https://natours-app123.herokuapp.com/api/v1/users/updateMe',
+      url: '/api/v1/users/updateMe',
       data,
     });
 
@@ -43,7 +43,7 @@ const UpdatePassword = async (currentPass, newPass, confirmNewPass) => {
   try {
     const res = await axios({
       method: 'PATCH',
-      url: 'https://natours-app123.herokuapp.com/api/v1/users/updatePassword',
+      url: '/api/v1/users/updatePassword',
       data: {
         password: currentPass,
         newPassword: newPass,
@@ -64,7 +64,7 @@ if (document.getElementById('logoutBtn')) {
     try {
       const res = await axios({
         method: 'GET',
-        url: 'https://natours-app123.herokuapp.com/api/v1/users/logout',
+        url: '/api/v1/users/logout',
       });
 
       if (res.data.status === 'success') {
