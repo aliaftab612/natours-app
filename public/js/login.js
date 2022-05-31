@@ -112,16 +112,20 @@ if (saveAccountDetailsBtn) {
   });
 }
 
-const showAlert = function (type, msg) {
+const showAlert = function (type, msg, time = 3) {
   hideAlert();
   const alertHtml = `<div class='alert alert--${type}'>${msg}</div>`;
   document.querySelector('body').insertAdjacentHTML('afterbegin', alertHtml);
   window.setTimeout(() => {
     hideAlert();
-  }, 1500);
+  }, time * 1000);
 };
 
 const hideAlert = function () {
   const el = document.querySelector('.alert');
   if (el) el.parentElement.removeChild(el);
 };
+
+const alert = document.querySelector(body).dataset.alert;
+
+if (alert) showAlert('success', alert, 15);
