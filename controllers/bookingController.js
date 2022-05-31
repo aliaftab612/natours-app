@@ -1,9 +1,12 @@
 const Tour = require('../models/tourModel');
 const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
+const User = require('../models/userModel');
 const stripe = require('stripe')(
   'sk_test_51KfmWSSDvfdEC5RZcDtUg50zsJAwCflwq4vhmhsua72g4JSPOSzYW8a3WEwDqQN2Q28sTO7gcAxwBveIrpENB4mL00JVnUuJWP'
 );
+
+const endpointSecret = 'whsec_JGKHuLLE9VOeRwoSXXG8biZsszY57cAk';
 
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(req.params.tourId);
@@ -20,9 +23,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     ],
     mode: 'payment',
     payment_method_types: ['card'],
-    success_url: `${req.protocol}://${req.get('host')}/?tour=${tour.id}&user=${
-      req.user.id
-    }&price=${tour.price}`,
+    success_url: `${req.protocol}://${req.get('host')}/my-tours`,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.id}`,
     customer_email: req.user.email,
     client_reference_id: req.params.id,
@@ -31,11 +32,28 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   res.redirect(303, session.url);
 });
 
-exports.createBookingCheckout = catchAsync(async (req, res, next) => {
-  const { tour, user, price } = req.query;
-  if (!tour && !user && !price) return next();
+const createBooking = async (session) => {
+  const tour = session.client_reference_id;
+  const user = await User.findOne({ email: session.customer_email });
+  const price = session.display_items[0].amount / 100;
 
   await Booking.create({ tour, user, price });
+};
 
-  res.redirect(req.originalUrl.split('?')[0]);
-});
+exports.webhookCheckout = (req, res, next) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    return response.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    createBooking(event.data.object);
+  }
+
+  response.json({ received: true });
+};
