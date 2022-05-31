@@ -1,7 +1,3 @@
-const alert = document.querySelector('body').dataset.alert;
-
-if (alert) showAlert('success', alert, 15);
-
 const login = async (email, password) => {
   try {
     const res = await axios({
@@ -129,3 +125,7 @@ const hideAlert = function () {
   const el = document.querySelector('.alert');
   if (el) el.parentElement.removeChild(el);
 };
+
+const alert = document.querySelector('body').dataset.alert;
+
+if (alert) showAlert('success', alert, 15);
