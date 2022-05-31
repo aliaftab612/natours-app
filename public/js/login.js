@@ -1,3 +1,21 @@
+const alert = document.querySelector('body').dataset.alert;
+
+const showAlert = function (type, msg, time = 3) {
+  hideAlert();
+  const alertHtml = `<div class='alert alert--${type}'>${msg}</div>`;
+  document.querySelector('body').insertAdjacentHTML('afterbegin', alertHtml);
+  window.setTimeout(() => {
+    hideAlert();
+  }, time * 1000);
+};
+
+const hideAlert = function () {
+  const el = document.querySelector('.alert');
+  if (el) el.parentElement.removeChild(el);
+};
+
+if (alert) showAlert('success', alert, 15);
+
 const login = async (email, password) => {
   try {
     const res = await axios({
@@ -111,21 +129,3 @@ if (saveAccountDetailsBtn) {
     login(email, password);
   });
 }
-
-const showAlert = function (type, msg, time = 3) {
-  hideAlert();
-  const alertHtml = `<div class='alert alert--${type}'>${msg}</div>`;
-  document.querySelector('body').insertAdjacentHTML('afterbegin', alertHtml);
-  window.setTimeout(() => {
-    hideAlert();
-  }, time * 1000);
-};
-
-const hideAlert = function () {
-  const el = document.querySelector('.alert');
-  if (el) el.parentElement.removeChild(el);
-};
-
-const alert = document.querySelector('body').dataset.alert;
-
-if (alert) showAlert('success', alert, 15);
