@@ -26,6 +26,6 @@ block content
             form.form.form-verifyemail
                 .form__group
                     label.form__label(for='verificationCode') Verification Code
-                    input#verificationCode.form__input(type='numeric', placeholder='Enter verification code', required, minlength='6' maxlength='6')    
+                    input#verificationCode.form__input(pattern="[0-9.]+", type="text", placeholder='Enter verification code', required, minlength='6' maxlength='6', title='Plese enter numeric value')    
                 .form__group
                     button.btn.btn--green#verifyEmailBtn Validate  

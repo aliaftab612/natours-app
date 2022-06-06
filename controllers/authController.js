@@ -264,6 +264,10 @@ exports.verifyEmailVerificationCode = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({ email: email });
 
+  if (user.signedUp) {
+    return next(new AppError('Already Signed Up. Please Login!', 400));
+  }
+
   if (user.emailVerificationCode != verificationCode) {
     return next(new AppError('Wrong verification code!', 401));
   }
