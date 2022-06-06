@@ -48,6 +48,11 @@ const userSchema = new mongoose.Schema({
     default: true,
     select: false,
   },
+  signedUp: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationCode: Number,
 });
 
 userSchema.pre('save', async function (next) {

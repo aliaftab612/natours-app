@@ -58,6 +58,31 @@ exports.getLogin = catchAsync(async (req, res, next) => {
     });
 });
 
+exports.getSignUp = catchAsync(async (req, res, next) => {
+  if (req.query.email) {
+    return res
+      .status(200)
+      .set(
+        'Content-Security-Policy',
+        "default-src 'self' https://*.cloudflare.com https://*.stripe.com http://localhost:3000 ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://*.stripe.com ttps://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
+      )
+      .render('signup', {
+        title: 'Sign Up',
+        email: req.query.email,
+      });
+  }
+
+  res
+    .status(200)
+    .set(
+      'Content-Security-Policy',
+      "default-src 'self' https://*.cloudflare.com https://*.stripe.com http://localhost:3000 ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://*.stripe.com ttps://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
+    )
+    .render('signup', {
+      title: 'Sign Up',
+    });
+});
+
 exports.getAccount = (req, res, next) => {
   res
     .status(200)

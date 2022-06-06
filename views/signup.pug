@@ -1,0 +1,31 @@
+extends base
+
+block content 
+    main.main
+        .login-form#form-signUp(style=`display : ${email ? 'none' : 'block'}`)
+            h2.heading-secondary.ma-bt-lg Create a new Account
+            form.form.form-signup
+                .form__group
+                    label.form__label(for='name') Full Name
+                    input#name.form__input(type='name', placeholder='Enter Your Name', required)
+                .form__group
+                    label.form__label(for='email') Email address
+                    input#email.form__input(type='email', placeholder='you@example.com', required)
+                .form__group.ma-bt-md
+                    label.form__label(for='password') Password
+                    input#password.form__input(type='password', placeholder='••••••••', required, minlength='8')
+                .form__group.ma-bt-md
+                    label.form__label(for='confirmPassword') Confirm Password
+                    input#confirmPassword.form__input(type='password', placeholder='••••••••', required)    
+                .form__group
+                    button.btn.btn--green#signUpBtn Sign Up
+        .login-form#form-verifyEmail(style=`display : ${email ? 'block' : 'none'}`)
+            h2.heading-secondary.ma-bt-lg Email Verification 
+            label.form__label An email with 6 digit verifiaction code has been sent to your email address.
+            label.form__label#verificationEmail #{email ? email : ''}
+            form.form.form-verifyemail
+                .form__group
+                    label.form__label(for='verificationCode') Verification Code
+                    input#verificationCode.form__input(type='numeric', placeholder='Enter verification code', required, minlength='6' maxlength='6')    
+                .form__group
+                    button.btn.btn--green#verifyEmailBtn Validate  

@@ -31,7 +31,64 @@ const login = async (email, password) => {
       showAlert('success', 'Successfully LogedIn!!');
       window.setTimeout(() => {
         location.assign('/');
-      }, 1500);
+      }, 3000);
+    }
+  } catch (err) {
+    if (err.response.data.message === 'SignUp process not completed') {
+      window.setTimeout(() => {
+        location.assign(`/signup?email=${email}`);
+      });
+    } else {
+      showAlert('error', err.response.data.message);
+    }
+  }
+};
+
+const verifyEmailVerificationCode = async (email, code) => {
+  try {
+    const res = await axios({
+      method: 'PATCH',
+      url: '/api/v1/users/verifyEmail',
+      data: {
+        email,
+        emailVerificationCode: code,
+      },
+    });
+
+    if (res.data.status === 'success') {
+      showAlert('success', 'Successfully Signed Up!!');
+      window.setTimeout(() => {
+        location.assign('/');
+      }, 3000);
+    }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
+  }
+};
+
+const signUp = async (name, email, password, confirmPassword) => {
+  try {
+    const res = await axios({
+      method: 'POST',
+      url: '/api/v1/users/signup',
+      data: {
+        name,
+        email,
+        password,
+        confirmPassword,
+      },
+    });
+
+    if (res.data.status === 'success') {
+      const signUpForm = document.getElementById('form-signUp');
+      const verifyEmailForm = document.getElementById('form-verifyEmail');
+      const verificationEmailField =
+        document.getElementById('verificationEmail');
+
+      verificationEmailField.innerText = email;
+
+      signUpForm.style.display = 'none';
+      verifyEmailForm.style.display = 'block';
     }
   } catch (err) {
     showAlert('error', err.response.data.message);
@@ -50,7 +107,7 @@ const SaveAccountDetails = async (data) => {
       showAlert('success', 'Successfully Saved!!');
       window.setTimeout(() => {
         location.assign('/me');
-      }, 1500);
+      }, 3000);
     }
   } catch (err) {
     showAlert('error', err.response.data.message);
@@ -94,6 +151,60 @@ if (document.getElementById('logoutBtn')) {
   });
 }
 
+const signUpBtn = document.getElementById('signUpBtn');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+
+function validatePasswords() {
+  if (
+    confirmPasswordInput.value.length != 0 &&
+    passwordInput.value.length != 0
+  ) {
+    if (passwordInput.value !== confirmPasswordInput.value) {
+      confirmPasswordInput.setCustomValidity("Passwords Don't Match");
+      confirmPasswordInput.reportValidity();
+    } else {
+      confirmPasswordInput.setCustomValidity('');
+    }
+  } else {
+    confirmPasswordInput.setCustomValidity('');
+  }
+}
+
+if (signUpBtn) {
+  passwordInput.onchange = validatePasswords;
+  confirmPasswordInput.onkeyup = validatePasswords;
+
+  document.querySelector('.form-signup').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    signUp(name, email, password, confirmPassword);
+  });
+}
+
+const emailVerifyBtn = document.getElementById('verifyEmailBtn');
+
+if (emailVerifyBtn) {
+  document
+    .querySelector('.form-verifyemail')
+    .addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const verificationEmail =
+        document.getElementById('verificationEmail').innerText;
+      const verificationCode = Number(
+        document.getElementById('verificationCode').value
+      );
+
+      verifyEmailVerificationCode(verificationEmail, verificationCode);
+    });
+}
+
 const saveAccountDetailsBtn = document.querySelector('.form-user-data');
 const changePasswordBtn = document.querySelector('.form-user-settings');
 const tourBookBtn = document.getElementById('book-tour');
@@ -122,7 +233,7 @@ if (saveAccountDetailsBtn) {
     document.getElementById('password-confirm').value = '';
   });
 } else {
-  document.querySelector('.form').addEventListener('submit', (e) => {
+  document.querySelector('.form-login').addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;

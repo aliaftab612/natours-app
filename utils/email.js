@@ -51,4 +51,11 @@ module.exports = class Email {
       'Reset Link Natours Password (Expires in 10 Mins)'
     );
   }
+
+  async sendVerificationEmail() {
+    await this.sendEmail(
+      'emailVerification',
+      'Natours Email Verification code'
+    );
+  }
 };

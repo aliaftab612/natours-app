@@ -13,30 +13,22 @@ const generateToken = (id) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
+  const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     confirmPassword: req.body.confirmPassword,
     role: req.body.role,
+    emailVerificationCode: verificationCode,
   });
 
-  const token = generateToken(newUser._id);
-
-  await new Email(
-    newUser,
-    `${req.protocol}://${req.get('host')}/me`
-  ).sendWelcomeEmail();
+  await new Email(newUser, String(verificationCode)).sendVerificationEmail();
 
   res.status(200).json({
     status: 'success',
-    token,
-    data: {
-      user: {
-        name: newUser.name,
-        email: newUser.email,
-      },
-    },
+    message: 'Verification e-mail sent successfully!',
   });
 });
 
@@ -48,6 +40,18 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Please Enter Email and Password', 400));
 
   const user = await User.findOne({ email }).select('+password');
+
+  if (!user.signedUp) {
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    await User.findByIdAndUpdate(user.id, {
+      emailVerificationCode: verificationCode,
+    });
+
+    await new Email(user, String(verificationCode)).sendVerificationEmail();
+
+    return next(new AppError('SignUp process not completed', 400));
+  }
 
   if (!user || !(await user.checkPassword(password, user.password)))
     return next(new AppError('Incorrect email or password', 401));
@@ -251,5 +255,37 @@ exports.logout = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: null,
+  });
+});
+
+exports.verifyEmailVerificationCode = catchAsync(async (req, res, next) => {
+  const email = req.body.email;
+  const verificationCode = req.body.emailVerificationCode;
+
+  const user = await User.findOne({ email: email });
+
+  if (user.emailVerificationCode != verificationCode) {
+    return next(new AppError('Wrong verification code!', 401));
+  }
+
+  await User.findByIdAndUpdate(user.id, { signedUp: true });
+
+  const token = generateToken(user._id);
+
+  await new Email(
+    user,
+    `${req.protocol}://${req.get('host')}/me`
+  ).sendWelcomeEmail();
+
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    expires: new Date(Number(new Date()) + 3153600000000),
+  });
+
+  res.status(200).json({
+    status: 'success',
+    token,
   });
 });
