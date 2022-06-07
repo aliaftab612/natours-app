@@ -16,6 +16,24 @@ const hideAlert = function () {
 
 if (alert) showAlert('success', alert, 15);
 
+const resendVerificationCode = async (email) => {
+  try {
+    const res = await axios({
+      method: 'PATCH',
+      url: '/api/v1/users/resendEmailVerificationCode',
+      data: {
+        email: email,
+      },
+    });
+
+    if (res.data.status === 'success') {
+      showAlert('success', 'Verification Email Sent Successfully');
+    }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
+  }
+};
+
 const login = async (email, password) => {
   try {
     const res = await axios({
@@ -203,6 +221,19 @@ if (emailVerifyBtn) {
 
       verifyEmailVerificationCode(verificationEmail, verificationCode);
     });
+}
+
+const resendCodeBtn = document.getElementById('resendCode');
+
+if (resendCodeBtn) {
+  resendCodeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const verificationEmail =
+      document.getElementById('verificationEmail').innerText;
+
+    resendVerificationCode(verificationEmail);
+  });
 }
 
 const saveAccountDetailsBtn = document.querySelector('.form-user-data');

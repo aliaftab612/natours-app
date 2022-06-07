@@ -10,6 +10,10 @@ router.post('/forgotPassword', authController.forgotPassword);
 router.get('/logout', authController.logout);
 router.patch('/resetPassword/:resetToken', authController.resetPassword);
 router.patch('/verifyEmail', authController.verifyEmailVerificationCode);
+router.patch(
+  '/resendEmailVerificationCode',
+  authController.resendEmailVerificationCode
+);
 
 router.use(authController.protect);
 

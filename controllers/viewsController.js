@@ -3,6 +3,7 @@ const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const Booking = require('../models/bookingModel');
 const { query } = require('express');
+const User = require('../models/userModel');
 
 exports.getToursOverview = catchAsync(async (req, res, next) => {
   const tours = await Tour.find();
@@ -60,6 +61,16 @@ exports.getLogin = catchAsync(async (req, res, next) => {
 
 exports.getSignUp = catchAsync(async (req, res, next) => {
   if (req.query.email) {
+    const user = await User.findOne({ email: req.query.email });
+
+    if (!user) {
+      return next(new AppError(`Invalid Email Address!`, 400));
+    }
+
+    if (user.signedUp) {
+      return next(new AppError('Already Signed Up. Please Login!', 400));
+    }
+
     return res
       .status(200)
       .set(

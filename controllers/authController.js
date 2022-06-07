@@ -293,3 +293,34 @@ exports.verifyEmailVerificationCode = catchAsync(async (req, res, next) => {
     token,
   });
 });
+
+exports.resendEmailVerificationCode = catchAsync(async (req, res, next) => {
+  const email = req.body.email;
+
+  if (!email) {
+    return next(new AppError('Please provide email', 400));
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new AppError(`Invalid Email Address!${req.query.email}`, 400));
+  }
+
+  if (user.signedUp) {
+    return next(new AppError('Already Signed Up. Please Login!', 400));
+  }
+
+  const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+  await User.findByIdAndUpdate(user.id, {
+    emailVerificationCode: verificationCode,
+  });
+
+  await new Email(user, String(verificationCode)).sendVerificationEmail();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Email Verification Code sent successfully!',
+  });
+});

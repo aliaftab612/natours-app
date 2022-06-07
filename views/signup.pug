@@ -23,6 +23,8 @@ block content
             h2.heading-secondary.ma-bt-lg Email Verification 
             label.form__label An email with 6 digit verifiaction code has been sent to your email address.
             label.form__label#verificationEmail #{email ? email : ''}
+            input.form__upload(type='submit' id='resendCode')
+            label(for='resendCode') Resend Verification Code
             form.form.form-verifyemail
                 .form__group
                     label.form__label(for='verificationCode') Verification Code
