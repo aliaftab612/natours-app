@@ -16,6 +16,15 @@ const hideAlert = function () {
 
 if (alert) showAlert('success', alert, 15);
 
+const backToLoginBtn = document.getElementById('backToLoginBtn');
+
+if (backToLoginBtn) {
+  backToLoginBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    location.assign('/login');
+  });
+}
+
 const resendVerificationCode = async (email) => {
   try {
     const res = await axios({
@@ -59,6 +68,59 @@ const login = async (email, password) => {
     } else {
       showAlert('error', err.response.data.message);
     }
+  }
+};
+
+const sendPasswordResetEmail = async (email) => {
+  try {
+    const res = await axios({
+      method: 'POST',
+      url: '/api/v1/users/forgotPassword',
+      data: {
+        email,
+      },
+    });
+
+    if (res.data.status === 'success') {
+      const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+      const resetEmailSuccessLabel = document.getElementById(
+        'forgotPasswordSuccessMsg'
+      );
+      const backToLoginBtn = document.getElementById('backToLoginBtn');
+
+      forgotPasswordForm.style.display = 'none';
+      resetEmailSuccessLabel.style.display = 'block';
+      backToLoginBtn.style = 'display:block;margin-top:25px';
+    }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
+  }
+};
+
+const resetPassword = async (password, confirmPassword, resetToken) => {
+  try {
+    const res = await axios({
+      method: 'PATCH',
+      url: `/api/v1/users/resetPassword/${resetToken}`,
+      data: {
+        password,
+        confirmPassword,
+      },
+    });
+
+    if (res.data.status === 'success') {
+      const resetPasswordForm = document.getElementById('resetPasswordForm');
+      const resetPasswordSuccessMsg = document.getElementById(
+        'resetPasswordSuccessMsg'
+      );
+      const backToLoginBtn = document.getElementById('backToLoginBtn');
+
+      resetPasswordForm.style.display = 'none';
+      resetPasswordSuccessMsg.style.display = 'block';
+      backToLoginBtn.style = 'display:block;margin-top:25px';
+    }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
   }
 };
 
@@ -223,6 +285,42 @@ if (emailVerifyBtn) {
     });
 }
 
+const sendResetEmailBtn = document.getElementById('sendResetEmailBtn');
+
+if (sendResetEmailBtn) {
+  document
+    .querySelector('.form-forgotPassword')
+    .addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+
+      sendPasswordResetEmail(email);
+    });
+}
+
+const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+
+if (resetPasswordBtn) {
+  passwordInput.onchange = validatePasswords;
+  confirmPasswordInput.onkeyup = validatePasswords;
+
+  document
+    .querySelector('.form-resetPassword')
+    .addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      const url = window.location.href;
+      const temp = url.split('/');
+      const resetToken = temp[temp.length - 1];
+
+      resetPassword(password, confirmPassword, resetToken);
+    });
+}
+
 const resendCodeBtn = document.getElementById('resendCode');
 
 if (resendCodeBtn) {
@@ -269,5 +367,14 @@ if (saveAccountDetailsBtn) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     login(email, password);
+  });
+}
+
+const forgotPasswordBtn = document.getElementById('forgotPassword');
+
+if (forgotPasswordBtn) {
+  forgotPasswordBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    location.assign('/forgotPassword');
   });
 }

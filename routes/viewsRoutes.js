@@ -19,4 +19,16 @@ router.get('/me', authController.protect, viewsController.getAccount);
 
 router.get('/my-tours', authController.protect, viewsController.getMyBookings);
 
+router.get(
+  '/forgotPassword',
+  authController.isLoggedIn,
+  viewsController.getForgotPassword
+);
+
+router.get(
+  '/resetPassword/:resetToken',
+  authController.isLoggedIn,
+  viewsController.getResetPassword
+);
+
 module.exports = router;
