@@ -202,19 +202,11 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetTokenExpiresAt = undefined;
   await user.save();
 
-  const message = `Hello ${
-    user.name
-  }, Your password was reset recently , if it was not you please reset immediately
-          using this link - ${req.protocol}://${req.get(
-    'host'
-  )}/forgotPassword Please use your address while resetting - ${user.email}`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: '[Natours] Your password was reset',
-      message,
-    });
+    await new Email(
+      user,
+      `${req.protocol}://${req.get('host')}/forgotPassword`
+    ).sendPasswordResetSuccessfulEmail();
   } catch (err) {
     console.log('Password Change email was not sent Error!');
   }

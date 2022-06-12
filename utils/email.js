@@ -7,6 +7,7 @@ module.exports = class Email {
     this.user = user;
     this.url = url;
     this.firstName = user.name.split(' ')[0];
+    this.email = user.email;
   }
 
   createTransport() {
@@ -27,6 +28,7 @@ module.exports = class Email {
         title: subject,
         firstName: this.firstName,
         url: this.url,
+        email: this.email,
       }
     );
 
@@ -56,6 +58,13 @@ module.exports = class Email {
     await this.sendEmail(
       'emailVerification',
       'Natours Email Verification code'
+    );
+  }
+
+  async sendPasswordResetSuccessfulEmail() {
+    await this.sendEmail(
+      'resetSuccessful',
+      '[Natours] Your password was reset'
     );
   }
 };
