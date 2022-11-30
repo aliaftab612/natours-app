@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
-      -name: Install Fossa CLI
-       run: |
-        curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash   
+      - name: Install Fossa CLI
+        run: |
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash   
         
