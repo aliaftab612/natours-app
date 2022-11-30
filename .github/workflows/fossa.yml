@@ -17,4 +17,21 @@ jobs:
       - name: Install Fossa CLI
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash   
-        
+      - name: Get Branch Name
+        id: branch-name
+        uses: tj-actions/branch-names@v6.2
+      - name: Set Variables
+        run: |
+          echo "PROJECT_TITLE=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "PROJECT_URL=${GITHUB_SERVER_UR}/${GITHUB_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "PROJECT_BRANCH=${{ steps.branch-name.outputs.current_branch }}" >> "$GITHUB_ENV"
+      - name: Run Fossa Analyze
+        run: |
+          fossa analyze --branch "${{ env.PROJECT_BRANCH }}" --revision "${{ github.sha }}" --title "${{ env.PROJECT_TITLE }}" --project-url "${{ env.PROJECT_URL }}"
+        env:
+          FOSSA_API_KEY: 51d4e100eb0417813079fe2291ca70c2
+      - name: Fossa Test
+        run: |
+          fossa test
+        env:  
+          FOSSA_API_KEY: 51d4e100eb0417813079fe2291ca70c2              
